@@ -25,14 +25,13 @@ pipeline {
             git config --global --add safe.directory $PWD
             commitid=$(git log -1 --format=%h)
             echo $commitid
-            docker build -t $registryUrl/$app:latest -t $registryUrl/$app:$commitid -f src/Dockerfile .
+            docker build -t $registryUrl/library/$app:latest -t $registryUrl/library/$app:$commitid -f src/Dockerfile .
             docker images 
             echo "**************"
             echo "Docker login"
             echo $registryPassword | docker login -u $registryUser $registryUrl --password-stdin
             echo "Docker pushing images"
-            docker push $registryUrl/$app:latest
-            docker push $registryUrl/$app:$commitid
+            docker push $registryUrl/library/$app:latest
             
         '''
         }
@@ -51,8 +50,8 @@ pipeline {
         git config --global --add safe.directory $PWD
         commitId=$(git log -1 --format=%h)
         echo $commitId
-        echo "$registryUrl/$app:$commitId"
-        kubectl set image deployment/book-api main=$registryUrl/$app:$commitId -n development
+        echo "$registryUrl/library/$app:$commitId"
+        kubectl set image deployment/book-api main=$registryUrl/library/$app:$commitId -n development
         '''
         }
       }
@@ -70,12 +69,12 @@ pipeline {
         git config --global --add safe.directory $PWD
         commitId=$(git log -1 --format=%h)
         echo $commitId
-        echo "$registryUrl/$app:$commitId"
+        echo "$registryUrl/library/$app:$commitId"
         echo "Docker login"
         echo $registryPassword | docker login -u $registryUser $registryUrl --password-stdin
-        docker pull $registryUrl/$app:$commitId
-        docker tag $registryUrl/$app:$commitId $registryUrl/$app:latest-release
-        docker push $registryUrl/$app:latest-release
+        docker pull $registryUrl/library/$app:$commitId
+        docker tag $registryUrl/library/$app:$commitId $registryUrl/$app:latest-release
+        docker push $registryUrl/library/$app:latest-release
         '''
         }
         container('k8s') {
@@ -84,8 +83,8 @@ pipeline {
         git config --global --add safe.directory $PWD
         commitId=$(git log -1 --format=%h)
         echo $commitId
-        echo "$registryUrl/$app:$commitId"
-        kubectl set image deployment/$app main=$registryUrl/$app:$commitId -n production
+        echo "$registryUrl/library/$app:$commitId"
+        kubectl set image deployment/$app main=$registryUrl/library/$app:$commitId -n production
         '''
         }
       }
